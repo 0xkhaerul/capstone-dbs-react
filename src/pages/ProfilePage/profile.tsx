@@ -1,4 +1,4 @@
-export default function ProfilePage() {
+export default function ProfileCardView() {
   const user = {
     name: "Ilman Khaerul",
     email: "ilman@example.com",
