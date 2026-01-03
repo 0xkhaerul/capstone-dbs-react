@@ -8,7 +8,11 @@ export default function ProtectedRoute({
 }) {
   const { isAuthenticated } = useAuth();
 
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const auth = isAuthenticated || !!token;
+
+  if (!auth) return <Navigate to="/login" replace />;
 
   return <>{children}</>;
 }
