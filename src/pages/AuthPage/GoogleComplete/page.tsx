@@ -67,11 +67,15 @@ export default function GoogleCompletePage() {
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="w-full max-w-md bg-white p-6 rounded shadow">
-        <h2 className="text-xl font-semibold mb-4">Selesaikan Registrasi</h2>
+        <h2 className="text-black text-xl font-semibold mb-4">
+          Selesaikan Registrasi
+        </h2>
         {error && <div className="text-red-600 mb-3">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
-            <label className="block text-sm font-medium">Email</label>
+            <label className="text-black block text-sm font-medium">
+              Email
+            </label>
             <input
               value={email}
               disabled
@@ -79,12 +83,14 @@ export default function GoogleCompletePage() {
             />
           </div>
           <div className="mb-3">
-            <label className="block text-sm font-medium">Nama Lengkap</label>
+            <label className="text-black block text-sm font-medium">
+              Nama Lengkap
+            </label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full mt-1 p-2 border rounded"
+              className="bg-white text-black w-full mt-1 p-2 border rounded"
             />
           </div>
           <button
