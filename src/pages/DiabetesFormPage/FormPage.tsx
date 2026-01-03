@@ -63,8 +63,22 @@ export function DiabetesFormPage() {
       setError(null);
     } catch (err: any) {
       console.error("API Error:", err);
-      const errorMessage =
-        err.response?.data?.message || err.message || "Gagal memanggil API";
+
+      let errorMessage = "Gagal memanggil API";
+
+      if (err.code === "ECONNABORTED" || err.message?.includes("timeout")) {
+        errorMessage = "Railway timeout (limit free tier). Coba lagi nanti.";
+      } else if (
+        err.message === "Network Error" ||
+        [502, 503, 504].includes(err.response?.status)
+      ) {
+        errorMessage = "Railway timeout (service sleep / limit).";
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
       setError(errorMessage);
       setResult(null);
     }
