@@ -15,5 +15,5 @@ export const getCheckHistroyById = (id: string) => {
 export const unSaveCheckHistory = (id: string) => {
   const token = localStorage.getItem("token");
   const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
-  return api.patch(`/form-check-history/${id}/unsave`, null, { headers });
+  return api.patch(`/form-check-history/${id}/unsave`, undefined, { headers });
 };

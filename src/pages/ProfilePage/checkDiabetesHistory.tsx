@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { getAllCheckHistory, getCheckHistroyById } from "./api";
+import {
+  getAllCheckHistory,
+  getCheckHistroyById,
+  unSaveCheckHistory,
+} from "./api";
 import { useEffect } from "react";
 
 type HistoryItem = {
@@ -19,7 +23,7 @@ type HistoryItem = {
   updatedAt: string;
 };
 
-export function CheckDiabetesList({ isOpen, onSelect }: any) {
+export function CheckDiabetesList({ isOpen, onSelect, refreshKey }: any) {
   const [data, setData] = useState<HistoryItem[]>([]);
 
   useEffect(() => {
@@ -35,7 +39,7 @@ export function CheckDiabetesList({ isOpen, onSelect }: any) {
     };
 
     fetchHistory();
-  }, []);
+  }, [refreshKey]);
 
   const formatDateTime = (iso: string) => {
     return new Date(iso).toLocaleString("id-ID", {
@@ -70,7 +74,7 @@ export function CheckDiabetesList({ isOpen, onSelect }: any) {
   );
 }
 
-export function DiabetesHistoryDetail({ id }: any) {
+export function DiabetesHistoryDetail({ id, onDelete }: any) {
   const [item, setItem] = useState<HistoryItem | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -102,6 +106,16 @@ export function DiabetesHistoryDetail({ id }: any) {
       cancelled = true;
     };
   }, [id]);
+
+  const handleDelete = async (idToDelete: string) => {
+    try {
+      await unSaveCheckHistory(idToDelete);
+      if (onDelete) onDelete(idToDelete);
+      setItem(null);
+    } catch (e) {
+      console.error("Error deleting history:", e);
+    }
+  };
 
   const formatDateTime = (iso?: string) => {
     if (!iso) return "-";
@@ -174,14 +188,14 @@ export function DiabetesHistoryDetail({ id }: any) {
 
       {/* Footer */}
       <div className="flex justify-between text-xs text-gray-500 border-t pt-4">
-        <div></div>
+        <button onClick={() => handleDelete(item.id)}>Delete</button>
         <div>Created: {formatDateTime(item.createdAt)}</div>
       </div>
     </div>
   );
 }
 
-export function CheckDiabetesHistory({ onSelect }: any) {
+export function CheckDiabetesHistory({ onSelect, refreshKey }: any) {
   const [isDrawdownOpen, setIsDrawdownOpen] = useState<boolean>(() => {
     const saved = localStorage.getItem("checkHistoryOpen");
     return saved ? JSON.parse(saved) : false;
@@ -199,7 +213,11 @@ export function CheckDiabetesHistory({ onSelect }: any) {
       >
         Check Diabetes History
       </button>
-      <CheckDiabetesList isOpen={isDrawdownOpen} onSelect={onSelect} />
+      <CheckDiabetesList
+        isOpen={isDrawdownOpen}
+        onSelect={onSelect}
+        refreshKey={refreshKey}
+      />
     </div>
   );
 }

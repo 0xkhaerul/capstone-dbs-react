@@ -10,6 +10,7 @@ import { useState } from "react";
 
 export function ProfilePage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState<number>(0);
 
   useEffect(() => {
     getAllCheckHistory()
@@ -24,6 +25,11 @@ export function ProfilePage() {
     setSelectedId(id);
   };
 
+  const handleDeleteFromDetail = (deletedId: string) => {
+    if (deletedId === selectedId) setSelectedId(null);
+    setRefreshKey((k) => k + 1);
+  };
+
   return (
     <div className="flex min-h-screen bg-[#F3F7FD] p-6 gap-6">
       {/* Sidebar */}
@@ -33,12 +39,18 @@ export function ProfilePage() {
         {/* Profile preview 2 */}
         <ChatHistory />
         {/* Frames */}
-        <CheckDiabetesHistory onSelect={handleSelectHistory} />
+        <CheckDiabetesHistory
+          onSelect={handleSelectHistory}
+          refreshKey={refreshKey}
+        />
       </div>
 
       {/* Content */}
       <div className="flex-1 bg-white rounded-xl border border-gray-200 shadow-lg flex items-center justify-center text-gray-700 text-lg">
-        <DiabetesHistoryDetail id={selectedId} />
+        <DiabetesHistoryDetail
+          id={selectedId}
+          onDelete={handleDeleteFromDetail}
+        />
       </div>
     </div>
   );
