@@ -2,6 +2,7 @@ import type { PredictResponse } from "./formcheckApi";
 import { saveCheckHistory } from "./formcheckApi";
 import { useNavigate } from "react-router-dom";
 import { decodeToken } from "../../utils/decodeToken";
+import { useState } from "react";
 
 type ResultComponentProps = {
   result: PredictResponse;
@@ -10,6 +11,7 @@ type ResultComponentProps = {
 export default function ResultComponent({ result }: ResultComponentProps) {
   const navigate = useNavigate();
   const { inputData, prediction, recordId, timestamp } = result;
+  const [saving, setSaving] = useState(false);
 
   // Format timestamp
   const formatDate = (isoString: string) => {
@@ -30,14 +32,23 @@ export default function ResultComponent({ result }: ResultComponentProps) {
     ? "Based on your input data, you have a high risk of diabetes. Please consult with a healthcare professional for further evaluation."
     : "Based on your input data, you have a low risk of diabetes. Continue maintaining a healthy lifestyle";
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const user = decodeToken();
 
     if (!user) {
       return navigate("/login");
     }
 
-    saveCheckHistory(result.recordId);
+    setSaving(true);
+    try {
+      await saveCheckHistory(result.recordId);
+      alert("Riwayat berhasil disimpan!");
+    } catch (error) {
+      console.error("Error saving history:", error);
+      alert("Gagal menyimpan riwayat. Silakan coba lagi.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -164,9 +175,40 @@ export default function ResultComponent({ result }: ResultComponentProps) {
           <div></div>
           <button
             onClick={handleSave}
-            className="border border-blue-500 bg-blue-500 rounded-md px-4 py-2 text-white"
+            disabled={saving}
+            className={`border rounded-md px-4 py-2 text-white flex items-center gap-2 ${
+              saving
+                ? "bg-gray-500 cursor-not-allowed"
+                : "border-blue-500 bg-blue-500 hover:bg-blue-600"
+            }`}
           >
-            Simpan Riwayat
+            {saving ? (
+              <>
+                <svg
+                  className="animate-spin h-4 w-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Menyimpan...
+              </>
+            ) : (
+              "Simpan Riwayat"
+            )}
           </button>
         </div>
         {/* Resources Section */}
