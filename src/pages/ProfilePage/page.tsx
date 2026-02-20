@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ProfileCardView, ProfileDetail } from "./profile";
-import ChatHistory from "./chatHistory";
 import {
   CheckDiabetesHistory,
   DiabetesHistoryDetail,
@@ -31,7 +30,7 @@ export function UpdateFormCard({ isOpen, onClose, data }: any) {
   }, [data]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev: any) => ({
@@ -69,7 +68,7 @@ export function UpdateFormCard({ isOpen, onClose, data }: any) {
       console.error("Error updating profile:", error);
       alert(
         error?.response?.data?.message ||
-          "Failed to update profile. Please try again."
+          "Failed to update profile. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -317,15 +316,19 @@ export function ProfilePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [refreshKey, setRefreshKey] = useState<number>(0);
   const [editFormData, setEditFormData] = useState<any>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
 
   const selectedId = searchParams.get("history");
   const isProfileOpen = searchParams.get("profile") === "open";
+
+  const closeSidebar = () => setIsSidebarOpen(false);
 
   const handleSelectHistory = (id: string) => {
     const params = new URLSearchParams(searchParams);
     params.set("history", id);
     params.delete("profile");
     setSearchParams(params);
+    closeSidebar();
   };
 
   const handleDeleteFromDetail = (deletedId: string) => {
@@ -342,6 +345,7 @@ export function ProfilePage() {
     params.set("profile", "open");
     params.delete("history");
     setSearchParams(params);
+    closeSidebar();
   };
 
   const handleOpenEditForm = (data: any) => {
@@ -349,32 +353,79 @@ export function ProfilePage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#F3F7FD] p-6 gap-6">
+    <div className="flex h-screen overflow-hidden bg-[#F3F7FD] md:p-6 md:gap-6">
       <UpdateFormCard
         isOpen={!!editFormData}
         onClose={() => setEditFormData(null)}
         data={editFormData}
       />
+
+      {/* Mobile backdrop overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50 md:hidden"
+          onClick={closeSidebar}
+        />
+      )}
+
       {/* Sidebar */}
-      <div className="w-[320px] bg-white rounded-xl p-4 flex flex-col gap-4 border border-gray-200 shadow-md">
+      <div
+        className={[
+          "fixed md:relative inset-y-0 left-0 z-40 md:z-auto",
+          "w-[320px] flex-shrink-0",
+          "bg-white md:rounded-xl p-4 flex flex-col gap-4 border-r md:border border-gray-200 shadow-md overflow-y-auto scrollbar-hide",
+          "transform transition-transform duration-300 ease-in-out",
+          isSidebarOpen
+            ? "translate-x-0"
+            : "-translate-x-full md:translate-x-0",
+        ].join(" ")}
+      >
         <ProfileCardView onSelect={handleProfileOpen} />
-        <ChatHistory />
         <CheckDiabetesHistory
           onSelect={handleSelectHistory}
           refreshKey={refreshKey}
         />
       </div>
 
-      {/* Content */}
-      <div className="flex-1 bg-white rounded-xl border border-gray-200 shadow-lg flex items-center justify-center text-gray-700 text-lg">
-        {isProfileOpen && <ProfileDetail onSelect={handleOpenEditForm} />}
-        {selectedId && (
-          <DiabetesHistoryDetail
-            id={selectedId}
-            onDelete={handleDeleteFromDetail}
-          />
-        )}
+      {/* Main area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Content */}
+        <div className="flex-1 md:bg-white md:rounded-xl md:border md:border-gray-200 md:shadow-lg overflow-hidden flex flex-col min-w-0">
+          {!isProfileOpen && !selectedId && (
+            <div className="flex items-center justify-center flex-1 text-gray-400 text-lg p-6 text-center">
+              Pilih menu di sidebar
+            </div>
+          )}
+          {isProfileOpen && <ProfileDetail onSelect={handleOpenEditForm} />}
+          {selectedId && (
+            <DiabetesHistoryDetail
+              id={selectedId}
+              onDelete={handleDeleteFromDetail}
+            />
+          )}
+        </div>
       </div>
+
+      {/* Mobile sidebar tab button */}
+      <button
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        className="fixed left-0 top-1/2 -translate-y-1/2 z-50 md:hidden w-6 h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-r-full shadow-md flex items-center justify-center transition-colors"
+        aria-label="Toggle sidebar"
+      >
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2.5"
+            d="M4 6h16M4 12h16M4 18h16"
+          />
+        </svg>
+      </button>
     </div>
   );
 }
